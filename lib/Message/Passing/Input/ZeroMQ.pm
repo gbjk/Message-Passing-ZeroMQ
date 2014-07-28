@@ -42,7 +42,7 @@ sub _try_rx {
     my $self = shift();
     my $data;
     try {
-        my $msg = zmq_recvmsg($self->_socket, ZMQ_NOBLOCK);
+        my $msg = zmq_recvmsg($self->_socket, ZMQ_DONTWAIT);
         if ($msg){
             $data = zmq_msg_data( $msg );
             }
