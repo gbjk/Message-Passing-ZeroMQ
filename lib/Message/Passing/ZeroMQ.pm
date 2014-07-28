@@ -177,7 +177,7 @@ For more detailed information about ZeroMQ and how it works, please consult the 
 
 =item L<Message::Passing>
 
-=item L<ZMQ::FFI>
+=item L<ZMQ::LibZMQ3>
 
 =item L<http://www.zeromq.org/>
 

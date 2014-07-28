@@ -1,6 +1,7 @@
 package Message::Passing::ZeroMQ::Role::HasASocket;
 use Moo::Role;
-use ZMQ::FFI::Constants qw/ :all /;
+use ZMQ::LibZMQ3;
+use ZMQ::Constants qw/ :all /;
 use MooX::Types::MooseLike::Base qw/ :all /;
 use namespace::clean -except => 'meta';
 use File::pushd qw/tempd/;
@@ -25,7 +26,7 @@ has socket_builder => (
 before _clear_ctx => sub {
     my $self = shift;
     if ($self->linger) {
-        $self->_socket->set_linger($self->linger);
+        zmq_setsockopt($self->_socket, ZMQ_LINGER, $self->linger);
     }
     $self->_socket->close;
     $self->_clear_socket;
@@ -45,17 +46,17 @@ sub _build_socket {
     return $self->socket_builder->($self, $self->_ctx)
         if $self->_has_socket_builder;
 
-    my $type_name = "ZMQ::FFI::Constants::ZMQ_" . $self->socket_type;
-    my $socket = $self->_ctx->socket(do { no strict 'refs'; &$type_name() });
+    my $type_name = "ZMQ::Constants::ZMQ_" . $self->socket_type;
+    my $socket = zmq_socket($self->_ctx, do { no strict 'refs'; &$type_name() });
     if ($self->linger) {
-        $socket->set_linger($self->linger);
+        zmq_setsockopt($socket, ZMQ_LINGER, $self->linger);
     }
-    $self->setsockopt($socket); 
+    $self->setsockopt($socket);
     if ($self->_should_connect) {
-        $socket->connect($self->connect);
+        zmq_connect($socket, $self->connect);
     }
     if ($self->_should_bind) {
-        $socket->bind($self->socket_bind);
+        zmq_bind($socket, $self->socket_bind);
     }
     if (!$self->_should_connect && !$self->_should_bind) {
         use Data::Dumper;

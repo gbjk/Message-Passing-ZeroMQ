@@ -6,11 +6,11 @@ use AnyEvent;
 use Message::Passing::Input::ZeroMQ;
 use Message::Passing::Filter::Decoder::JSON;
 use Message::Passing::Output::Test;
-use ZMQ::FFI::Constants qw/ :all /;
+use ZMQ::Constants qw/ :all /;
 
 my $cv = AnyEvent->condvar;
 my $output = Message::Passing::Output::Test->new(
-    cb => sub { $cv->send },
+    cb => sub { warn "got something"; },
 );
 my $dec = Message::Passing::Filter::Decoder::JSON->new(output_to => $output);
 my $input = Message::Passing::Input::ZeroMQ->new(
@@ -19,11 +19,11 @@ my $input = Message::Passing::Input::ZeroMQ->new(
 );
 ok $input;
 
-my $ctx = ZMQ::FFI->new();
-my $socket = $ctx->socket(ZMQ_PUB);
-$socket->connect('tcp://127.0.0.1:5558');
+my $ctx = zmq_init;
+my $socket = zmq_socket($ctx, ZMQ_PUB);
+zmq_connect($socket, 'tcp://127.0.0.1:5558');
 
-$socket->send('{"message":"foo"}');
+zmq_send_msg($socket, '{"message":"foo"}');
 
 $cv->recv;
 
